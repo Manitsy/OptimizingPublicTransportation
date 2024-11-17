@@ -6,7 +6,11 @@ from confluent_kafka import Consumer
 from confluent_kafka.avro import AvroConsumer
 from confluent_kafka.avro.serializer import SerializerError
 from tornado import gen
+<<<<<<< HEAD
 
+=======
+from confluent_kafka import OFFSET_BEGINNING
+>>>>>>> f52bf15 (modified)
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +41,34 @@ class KafkaConsumer:
         #
         #
         self.broker_properties = {
+<<<<<<< HEAD
                 #
                 # TODO
                 #
+=======
+
+            "bootstrap.servers": "PLAINTEXT://localhost:9092",
+            "group.id": f"{self.topic_name_pattern}",
+            "default.topic.config":
+                {"auto.offset.reset": "earliest" if offset_earliest else "latest"},
+            'security.protocol': 'PLAINTEXT',
+>>>>>>> f52bf15 (modified)
         }
 
         # TODO: Create the Consumer, using the appropriate type.
         if is_avro is True:
             self.broker_properties["schema.registry.url"] = "http://localhost:8081"
+<<<<<<< HEAD
             #self.consumer = AvroConsumer(...)
         else:
             #self.consumer = Consumer(...)
             pass
+=======
+            self.consumer = AvroConsumer(self.broker_properties)
+        else:
+            self.consumer = Consumer(self.broker_properties)
+
+>>>>>>> f52bf15 (modified)
 
         #
         #
@@ -56,12 +76,17 @@ class KafkaConsumer:
         # how the `on_assign` callback should be invoked.
         #
         #
+<<<<<<< HEAD
         # self.consumer.subscribe( TODO )
+=======
+        self.consumer.subscribe( [self.topic_name_pattern], on_assign=self.on_assign)
+>>>>>>> f52bf15 (modified)
 
     def on_assign(self, consumer, partitions):
         """Callback for when topic assignment takes place"""
         # TODO: If the topic is configured to use `offset_earliest` set the partition offset to
         # the beginning or earliest
+<<<<<<< HEAD
         logger.info("on_assign is incomplete - skipping")
         for partition in partitions:
             pass
@@ -73,6 +98,22 @@ class KafkaConsumer:
 
         logger.info("partitions assigned for %s", self.topic_name_pattern)
         consumer.assign(partitions)
+=======
+
+        logger.info("on_assign is incomplete - skipping")
+        if self.offset_earliest:
+            for partition in partitions:
+             partition.offset = OFFSET_BEGINNING
+
+        consumer.assign(partitions)
+        logger.info(f"Partitions assigned for {self.topic_name_pattern}")
+
+        #logger.info("on_assign is incomplete - skipping")
+        #for partition in partitions:
+        #    partition.offset = OFFSET_BEGINNING  # TODO: DOUBLE CHECK (OFFSET_BEGINNING)
+        #logger.info("partitions assigned for %s", self.topic_name_pattern)
+        #consumer.assign(partitions)
+>>>>>>> f52bf15 (modified)
 
     async def consume(self):
         """Asynchronously consumes data from kafka topic"""
@@ -91,6 +132,7 @@ class KafkaConsumer:
         # is retrieved.
         #
         #
+<<<<<<< HEAD
         logger.info("_consume is incomplete - skipping")
         return 0
 
@@ -102,3 +144,24 @@ class KafkaConsumer:
         # TODO: Cleanup the kafka consumer
         #
         #
+=======
+        try:
+            message = self.consumer.poll(self.consume_timeout)
+            if message is None:
+                logger.warning("no message received by consumer")
+                return 0
+            elif message.error() is not None:
+                logger.error(f"error from consumer {message.error()}")
+                return 0
+            else:
+                self.message_handler(message)
+                logger.INFO(f"Consumer Message Key :{message}")
+                return 1  # message is processed
+        except Exception as e:
+            logger.error(f"Error polling message: {e}")
+            return 0
+
+    def close(self):
+        """Cleans up any open kafka consumers"""
+        self.consumer.close()
+>>>>>>> f52bf15 (modified)
