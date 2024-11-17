@@ -6,8 +6,6 @@ def topic_exists(topic):
     client = AdminClient({"bootstrap.servers": "PLAINTEXT://localhost:9092"})
     topic_metadata = client.list_topics(timeout=5)
     return topic in set(t.topic for t in iter(topic_metadata.topics.values()))
-<<<<<<< HEAD
-=======
 
 def contains_substring(to_test, substr):
     _before, match, _after = to_test.partition(substr)
@@ -24,4 +22,3 @@ def topic_pattern_match(pattern):
     topics = topic_metadata.topics
     filtered_topics = {key: value for key, value in topics.items() if contains_substring(key, pattern)}
     return len(filtered_topics) > 0
->>>>>>> f52bf15 (modified)
