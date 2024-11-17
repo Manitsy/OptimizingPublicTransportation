@@ -33,18 +33,6 @@ class TransformedStation(faust.Record):
 #   places it into a new topic with only the necessary information.
 app = faust.App("stations-stream", broker="kafka://localhost:9092", store="memory://")
 # TODO: Define the input Kafka Topic. Hint: What topic did Kafka Connect output to?
-<<<<<<< HEAD
-# topic = app.topic("TODO", value_type=Station)
-# TODO: Define the output Kafka Topic
-# out_topic = app.topic("TODO", partitions=1)
-# TODO: Define a Faust Table
-#table = app.Table(
-#    # "TODO",
-#    # default=TODO,
-#    partitions=1,
-#    changelog_topic=out_topic,
-#)
-=======
 topic = app.topic("postgres_conn_stations", value_type=Station)
 # TODO: Define the output Kafka Topic
 out_topic = app.topic("stations.table", partitions=1)
@@ -55,7 +43,6 @@ table = app.Table(
     partitions=1,
     changelog_topic=out_topic,
 )
->>>>>>> f52bf15 (modified)
 
 
 #
@@ -66,8 +53,6 @@ table = app.Table(
 #
 #
 
-<<<<<<< HEAD
-=======
 @app.agent(topic)
 async def transform(stations):
     async for station in stations:
@@ -91,7 +76,6 @@ async def transform(stations):
 
         table[station.station_id] = transformed_station
 
->>>>>>> f52bf15 (modified)
 
 if __name__ == "__main__":
     app.main()

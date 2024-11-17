@@ -1,8 +1,4 @@
 {
-<<<<<<< HEAD
-  "TODO": "Complete this Schema! (Make sure to delete this Key/Value Pair!"
-}
-=======
   "namespace": "com.udacity",
   "type": "record",
   "name": "weather.value",
@@ -18,4 +14,3 @@
     }
   ]
 }
->>>>>>> f52bf15 (modified)

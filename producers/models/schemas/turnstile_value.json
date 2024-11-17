@@ -1,8 +1,4 @@
 {
-<<<<<<< HEAD
-  "TODO": "Complete this Schema! (Make sure to delete this Key/Value Pair!"
-}
-=======
   "namespace": "com.udacity",
   "type": "record",
   "name": "turnstile.value",
@@ -12,4 +8,3 @@
     {"name": "line", "type": "string"}
   ]
 }
->>>>>>> f52bf15 (modified)

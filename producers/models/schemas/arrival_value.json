@@ -1,8 +1,4 @@
 {
-<<<<<<< HEAD
-  "TODO": "Complete this Schema! (Make sure to delete this Key/Value Pair!"
-}
-=======
   "namespace": "com.udacity",
   "type": "record",
   "name": "arrival.value",
@@ -16,4 +12,3 @@
     {"name": "prev_direction", "type": ["null", "string"]}
   ]
 }
->>>>>>> f52bf15 (modified)

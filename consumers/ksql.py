@@ -23,16 +23,6 @@ KSQL_URL = "http://localhost:8088"
 
 KSQL_STATEMENT = """
 CREATE TABLE turnstile (
-<<<<<<< HEAD
-    ???
-) WITH (
-    ???
-);
-
-CREATE TABLE turnstile_summary
-WITH (???) AS
-    ???
-=======
     station_id INT,
     station_name VARCHAR,
     line VARCHAR
@@ -47,7 +37,6 @@ WITH (VALUE_FORMAT='JSON') AS
     SELECT station_id, COUNT(*) AS count
     FROM turnstile
     GROUP BY station_id;
->>>>>>> f52bf15 (modified)
 """
 
 
@@ -57,11 +46,7 @@ def execute_statement():
         return
 
     logging.debug("executing ksql statement...")
-<<<<<<< HEAD
-
-=======
     print(KSQL_STATEMENT)
->>>>>>> f52bf15 (modified)
     resp = requests.post(
         f"{KSQL_URL}/ksql",
         headers={"Content-Type": "application/vnd.ksql.v1+json"},
@@ -78,8 +63,5 @@ def execute_statement():
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-=======
     print("i am starting")
->>>>>>> f52bf15 (modified)
     execute_statement()

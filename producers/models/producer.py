@@ -1,143 +1,114 @@
-"""Producer base-class providing common utilites and functionality"""
+"""Methods pertaining to weather data"""
+from enum import IntEnum
+import json
 import logging
-import time
-<<<<<<< HEAD
+from pathlib import Path
+import random
+import urllib.parse
+
+import requests
 
 
-from confluent_kafka import avro
-from confluent_kafka.admin import AdminClient, NewTopic
-from confluent_kafka.avro import AvroConsumer, AvroProducer, CachedSchemaRegistryClient
-
-
-=======
-from pydoc_data.topics import topics
-
-from confluent_kafka import avro
-from confluent_kafka.admin import AdminClient, NewTopic
-from confluent_kafka.avro import AvroProducer, CachedSchemaRegistryClient
->>>>>>> f52bf15 (modified)
+from models.producer import Producer
 
 logger = logging.getLogger(__name__)
 
+class Weather(Producer):
+    """Defines a simulated weather model"""
 
-class Producer:
-    """Defines and provides common functionality amongst Producers"""
+    status = IntEnum(
+        "status", "sunny partly_cloudy cloudy windy precipitation", start=0
+    )
 
-    # Tracks existing topics across all Producer instances
-    existing_topics = set([])
+    rest_proxy_url = "http://localhost:8082"
 
-    def __init__(
-        self,
-        topic_name,
-        key_schema,
-        value_schema=None,
-        num_partitions=1,
-        num_replicas=1,
-    ):
-        """Initializes a Producer object with basic settings"""
-        self.topic_name = topic_name
-        self.key_schema = key_schema
-        self.value_schema = value_schema
-        self.num_partitions = num_partitions
-        self.num_replicas = num_replicas
+    key_schema = None
+    value_schema = None
 
-<<<<<<< HEAD
+    winter_months = set((0, 1, 2, 3, 10, 11))
+    summer_months = set((6, 7, 8))
+
+    def __init__(self, month):
+
+        # TODO: Complete the below by deciding on a topic name, number of partitions, and number of
+        # replicas
+
+        super().__init__(
+            #topic_name=f"weather_{month}", # TODO: Come up with a better topic name
+            #f"weather_{month}",
+            f"org.chicago.cta.weather.v1",
+            key_schema=Weather.key_schema,
+            value_schema=Weather.value_schema,
+        )
+
+        self.status = Weather.status.sunny
+        self.temp = 70.0
+        if month in Weather.winter_months:
+            self.temp = 40.0
+        elif month in Weather.summer_months:
+            self.temp = 85.0
+
+        if Weather.key_schema is None:
+            with open(f"{Path(__file__).parents[0]}/schemas/weather_key.json") as f:
+                Weather.key_schema = json.load(f)
+
+        #
+        # TODO: Define this value schema in `schemas/weather_value.json
+        #
+        if Weather.value_schema is None:
+            with open(f"{Path(__file__).parents[0]}/schemas/weather_value.json") as f:
+                Weather.value_schema = json.load(f)
+
+    def _set_weather(self, month):
+        """Returns the current weather"""
+        mode = 0.0
+        if month in Weather.winter_months:
+            mode = -1.0
+        elif month in Weather.summer_months:
+            mode = 1.0
+        self.temp += min(max(-20.0, random.triangular(-10.0, 10.0, mode)), 100.0)
+        self.status = random.choice(list(Weather.status))
+
+    def run(self, month):
+        self._set_weather(month)
+
         #
         #
-        # TODO: Configure the broker properties
-=======
-        # TODO: Configure the broker properties below. Make sure to reference the project README
-        # and use the Host URL for Kafka and Schema Registry!
->>>>>>> f52bf15 (modified)
-        self.broker_properties = {
-            "BROKER_URL": "PLAINTEXT://localhost:9092",
-            "SCHEMA_REGISTRY_URL": "http://localhost:8081",
-            "group.id": f"{self.topic_name}",
-<<<<<<< HEAD
+        # TODO: Complete the function by posting a weather event to REST Proxy. Make sure to
 
-        }
+        logger.info("weather kafka proxy integration completed ")
+        resp = requests.post(
+         #    # TODO: What URL should be POSTed to?
+        f"{Weather.rest_proxy_url}/topics/{self.topic_name}",
+               #    # TODO: What Headers need to bet set?
+            headers={"Content-Type": "application/vnd.kafka.avro.v2+json"},
+            data=json.dumps(
+                {
+                    "key_schema": json.dumps(Weather.key_schema),
+                    "value_schema": json.dumps(Weather.value_schema),
+                    "records": [
+                        {
+                            "key": {"timestamp": self.time_millis()},
+                            "value": {
+                                "temperature": self.temp,
+                                "status": self.status.name,
+                            }
+                        }
+                    ]
+                }
+            ),
+        )
 
-
-=======
-        }
-
->>>>>>> f52bf15 (modified)
-        # If the topic does not already exist, try to create it
-        if self.topic_name not in Producer.existing_topics:
-            self.create_topic()
-            Producer.existing_topics.add(self.topic_name)
-
-        # TODO: Configure the AvroProducer
-        self.producer = AvroProducer(
-<<<<<<< HEAD
-            {'bootstrap.servers': self.broker_properties["BROKER_URL"]},
-            schema_registry = CachedSchemaRegistryClient(
-=======
-            {"bootstrap.servers": self.broker_properties["BROKER_URL"]},
-            schema_registry=CachedSchemaRegistryClient(
->>>>>>> f52bf15 (modified)
-                {"url": self.broker_properties["SCHEMA_REGISTRY_URL"]},
+        try:
+            resp.raise_for_status()
+        except:
+            logger.exception(
+                f"Failed to subscribe REST proxy consumer: {json.dumps(resp.json(), indent=2)}"
             )
+            return
+
+        logger.debug(
+            "sent weather data to kafka, temp: %s, status: %s",
+            self.temp,
+            self.status.name,
         )
-
-    def create_topic(self):
-        """Creates the producer topic if it does not already exist"""
-        # TODO: Write code that creates the topic for this producer if it does not already exist on
-        # the Kafka Broker.
-<<<<<<< HEAD
-        # See: https://docs.confluent.io/current/clients/confluent-kafka-python/#confluent_kafka.admin.AdminClient
-        client = AdminClient({"bootstrap.servers": self.broker_properties['BROKER_URL']})
-
-        logger.info("topic created")
-
-        # Create a NewTopic object
-        # See: https://docs.confluent.io/current/clients/confluent-kafka-python/#confluent_kafka.admin.NewTopic
-
-        topic = NewTopic(self.topic_name,
-                          num_partitions=self.num_partitions,
-                          replication_factor = self.num_replicas)
-
-        # Using 'client', create the topic
-        # See: https://docs.confluent.io/current/clients/confluent-kafka-python/#confluent_kafka.admin.AdminClient.create_topics
-        futures = client.create_topics([topic])
-
-        for topic, future in futures.items():
-            try:
-                future.result()
-                print(f"topic created {topic}")
-            except Exception as e:
-                msg = f"failed to create topic: {e}"
-                logger.fatal(msg)
-                print(msg)
-                raise
-=======
-        client = AdminClient({"bootstrap.servers": self.broker_properties["BROKER_URL"]})
-        topic = NewTopic(self.topic_name,
-            num_partitions=self.num_partitions,
-            replication_factor=self.num_partitions,
-        )
-
-        client.create_topics([topic])
-
-        logger.info("topic creation kafka integration completed")
->>>>>>> f52bf15 (modified)
-
-    def time_millis(self):
-        return int(round(time.time() * 1000))
-
-    def close(self):
-        """Prepares the producer for exit by cleaning up the producer"""
-<<<<<<< HEAD
-        self.producer.flush()
-        logger.info("producer close successfully")
-=======
-        #
-        #
-        # TODO: Write cleanup code for the Producer here
-        self.producer.flush()
-        logger.info("producer close completed")
->>>>>>> f52bf15 (modified)
-
-    def time_millis(self):
-        """Use this function to get the key for Kafka Events"""
-        return int(round(time.time() * 1000))
